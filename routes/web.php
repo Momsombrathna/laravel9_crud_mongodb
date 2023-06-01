@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Mail\MyTestEmail;
+use Illuminate\Support\Facades\Mail;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,3 +21,9 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/test-mail', function() {
+    $name = "FunnyCoder";
+
+    // The email sending is done using the to method on the Mail facade
+    Mail::to('chantpanha@gmail.com')->send(new MyTestEmail($name));
+});

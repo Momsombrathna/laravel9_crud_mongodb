@@ -11,4 +11,7 @@ class Product extends Model
     use HasFactory;
     protected $connect = 'mongodb';
     protected $collection = 'products_collection';
+    protected $fillable = [
+        'name', 'detail'
+    ];
 }

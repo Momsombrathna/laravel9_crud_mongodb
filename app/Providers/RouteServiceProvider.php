@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Providers;
-
+use Auth;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -47,6 +47,9 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
         });
+        // Enable email verification for routes
+        Auth::routes(['verify' => true]);
+
     }
 
     /**

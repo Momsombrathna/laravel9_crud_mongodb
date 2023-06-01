@@ -1,51 +1,105 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\Models\Product;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Product;
+use Validator;
+use App\Http\Resources\ProductResource;
+use Illuminate\Http\JsonResponse;
 
-class ProductController extends Controller
+class ProductController extends BaseController
 {
-    public function index() {
-        $product = Product::all();
-        return response()->json([
-            "result" => $product
-        ], Response::HTTP_OK);
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(): JsonResponse
+    {
+        $products = Product::all();
 
+        return $this->sendResponse(ProductResource::collection($products), 'Products retrieved successfully.');
+    }
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $input = $request->all();
+
+        $validator = Validator::make($input, [
+            'name' => 'required',
+            'detail' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $product = Product::create($input);
+
+        return $this->sendResponse(new ProductResource($product), 'Product created successfully.');
     }
 
-    public function store(Request $request) {
-        $product = new Product();
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id): JsonResponse
+    {
+        $product = Product::find($id);
 
-        $product->description = $request->description;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
+        if (is_null($product)) {
+            return $this->sendError('Product not found.');
+        }
 
+        return $this->sendResponse(new ProductResource($product), 'Product retrieved successfully.');
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Product $product): JsonResponse
+    {
+        $input = $request->all();
+
+        $validator = Validator::make($input, [
+            'name' => 'required',
+            'detail' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $product->name = $input['name'];
+        $product->detail = $input['detail'];
         $product->save();
 
-        return response()->json(['result' => $product], Response::HTTP_CREATED);
-
+        return $this->sendResponse(new ProductResource($product), 'Product updated successfully.');
     }
 
-    public function update(Request $request, $id) {
-        $product = Product::findOrFail($request->id);
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Product $product): JsonResponse
+    {
+        $product->delete();
 
-        $product->description = $request->description;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
-
-        $product->save();
-
-        return response()->json(['result' => $product], Response::HTTP_OK);
-        
-    }
-
-    public function destroy($id) {
-        Product::destroy($id);
-        return response()->json(['message' => "Deleted!"], Response::HTTP_OK);
-        
+        return $this->sendResponse([], 'Product deleted successfully.');
     }
 }
